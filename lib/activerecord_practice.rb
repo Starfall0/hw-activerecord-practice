@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require 'sqlite3'
 require 'active_record'
 require 'byebug'
 
-
-ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => 'customers.sqlite3')
+ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'customers.sqlite3')
 # Show queries in the console.
 # Comment this line to turn off seeing the raw SQL queries.
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+ActiveRecord::Base.logger = Logger.new($stdout)
 
 class Customer < ActiveRecord::Base
   def to_s
@@ -24,17 +25,18 @@ class Customer < ActiveRecord::Base
 
   def self.with_valid_email
     # YOUR CODE HERE to return only customers with valid email addresses (containing '@')
-    Customer.where.not(email: nil).where.not(email: '').where("email LIKE ?", '%@%')
+    Customer.where.not(email: nil).where.not(email: '').where('email LIKE ?', '%@%')
   end
+
   # etc. - see README.md for more details
   def self.with_dot_org_email
     # return customers with email addresses ending in '.org'
-    Customer.where("email LIKE ?", '%.org')
+    Customer.where('email LIKE ?', '%.org')
   end
 
   def self.with_invalid_email
     # return customers with invalid email addresses
-    Customer.where.not(email: nil, email: '', email: ' ').reject { |customer| customer.email.include?('@') }
+    Customer.where.not(email: [nil, '', ' ']).reject { |customer| customer.email.include?('@') }
   end
 
   def self.with_blank_email
@@ -42,20 +44,20 @@ class Customer < ActiveRecord::Base
     Customer.where(email: [nil, '', ' '])
   end
 
-  def self.born_before_1980
-    # return customers born before January 1, 1980 
+  def self.born_before1980
+    # return customers born before January 1, 1980
     Customer.where('birthdate < ?', Date.new(1980, 1, 1)) # (Date.new => year, month, day)
   end
 
-  def self.with_valid_email_and_born_before_1980
+  def self.with_valid_email_and_born_before1980
     # return customers with valid email addresses and born before 1980
-    Customer.with_valid_email.born_before_1980
+    Customer.with_valid_email.born_before1980
   end
 
   def self.last_names_starting_with_b
     # return customers with last names starting with 'B' ordered by birthdate
     # select column 'last' that start with B
-    Customer.where("last LIKE ?", 'B%').order(:birthdate)
+    Customer.where('last LIKE ?', 'B%').order(:birthdate)
   end
 
   def self.twenty_youngest
@@ -72,7 +74,7 @@ class Customer < ActiveRecord::Base
 
   def self.change_all_invalid_emails_to_blank
     # change all invalid emails to blank
-    Customer.where.not(email: nil, email: '', email: ' ').where.not("email LIKE ?", '%@%').update_all(email: '')
+    Customer.where.not(email: [nil, '', ' ']).where.not('email LIKE ?', '%@%').update_all(email: '')
   end
 
   def self.delete_meggie_herman
@@ -80,9 +82,8 @@ class Customer < ActiveRecord::Base
     Customer.find_by(first: 'Meggie', last: 'Herman').destroy
   end
 
-  def self.delete_everyone_born_before_1978
+  def self.delete_everyone_born_before1978
     # delete all customers born before December 31, 1977
     Customer.where('birthdate <= ?', Date.new(1977, 12, 31)).destroy_all
   end
 end
-
